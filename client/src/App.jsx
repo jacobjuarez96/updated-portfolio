@@ -1,7 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import "./App.css";
 
-import tortugaImg from "./assets/tortuga.png";
+import tortugaVid from "./assets/tortugaVid.mp4";
+import photographyImg1 from "./assets/photography.png";
+import photographyImg2 from "./assets/photography2.png";
+import photographyImg3 from "./assets/photography3.png";
+import photographyImg4 from "./assets/photography4.jpg";
+import utVid from "./assets/videoeditVid.mp4";
+import ninjaImg from "./assets/ninjaslide.png";
+import junkImg from "./assets/junkslide.png";
 
 const slides = [
   {
@@ -16,30 +23,76 @@ const slides = [
     category: "Website / Full-Stack",
     description:
       "A clean service-based website for a pool company, featuring responsive layouts, customer-focused sections, and contact form functionality.",
-    image: tortugaImg,
+    image: tortugaVid,
   },
   {
     title: "Branding & Logos",
     category: "Brand Identity",
     description:
       "Logo concepts and visual identity systems designed to help small businesses look polished and memorable.",
-    image: tortugaImg,
+    slideshow: [ninjaImg, junkImg],
   },
   {
-    title: "Graphic Design",
-    category: "Print / Digital",
+    title: "Photography",
+    category: "Photography / Visual Content",
     description:
-      "Business cards, signage layouts, storefront graphics, flyers, and marketing visuals built for real-world use.",
-    image: tortugaImg,
+      "Photography and visual content created for branding, websites, social media, and polished business presentation.",
+    slideshow: [
+      photographyImg1,
+      photographyImg2,
+      photographyImg3,
+      photographyImg4,
+    ],
   },
   {
     title: "Video & Content Editing",
     category: "Content / Motion",
     description:
       "Photo cleanup, color correction, short-form edits, and polished visual content for websites and social media.",
-    image: tortugaImg,
+    image: utVid,
   },
 ];
+
+function HeroSlideshow({ slide }) {
+  const [photoIndex, setPhotoIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(true);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsTransitioning(true);
+      setPhotoIndex((prev) => prev + 1);
+    }, 4500);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="heroPhotoSlider">
+      <div
+        className="heroPhotoTrack"
+        style={{
+          transform: `translateX(-${photoIndex * 100}%)`,
+          transition: isTransitioning ? "transform 900ms ease" : "none",
+        }}
+        onTransitionEnd={() => {
+          if (photoIndex === slide.slideshow.length) {
+            setIsTransitioning(false);
+            setPhotoIndex(0);
+          }
+        }}
+      >
+        {[...slide.slideshow, slide.slideshow[0]].map((photo, i) => (
+          <img
+            key={i}
+            src={photo}
+            alt={`${slide.title} ${i + 1}`}
+            className="showcaseImage heroSlidePhoto"
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function App() {
   const [activeSlide, setActiveSlide] = useState(0);
@@ -52,37 +105,40 @@ function App() {
       if (!showcase) return;
 
       const rect = showcase.getBoundingClientRect();
-      const isInsideShowcase = rect.top <= 0 && rect.bottom > window.innerHeight;
+      const isInsideShowcase =
+        rect.top <= 76 && rect.bottom >= window.innerHeight;
 
       if (!isInsideShowcase) return;
+
+      if (Math.abs(e.deltaY) < 15) {
+        e.preventDefault();
+        return;
+      }
+
+      if (isLocked) {
+        e.preventDefault();
+        return;
+      }
 
       const scrollingDown = e.deltaY > 0;
       const scrollingUp = e.deltaY < 0;
 
       if (scrollingDown && activeSlide < slides.length - 1) {
         e.preventDefault();
+        setIsLocked(true);
+        setActiveSlide((prev) => prev + 1);
 
-        if (!isLocked) {
-          setIsLocked(true);
-          setActiveSlide((prev) => prev + 1);
-
-          setTimeout(() => {
-            setIsLocked(false);
-          }, 850);
-        }
-      }
-
-      if (scrollingUp && activeSlide > 0) {
+        setTimeout(() => {
+          setIsLocked(false);
+        }, 1100);
+      } else if (scrollingUp && activeSlide > 0) {
         e.preventDefault();
+        setIsLocked(true);
+        setActiveSlide((prev) => prev - 1);
 
-        if (!isLocked) {
-          setIsLocked(true);
-          setActiveSlide((prev) => prev - 1);
-
-          setTimeout(() => {
-            setIsLocked(false);
-          }, 850);
-        }
+        setTimeout(() => {
+          setIsLocked(false);
+        }, 1100);
       }
     };
 
@@ -113,7 +169,7 @@ function App() {
         ref={showcaseRef}
         className="horizontalSection"
         style={{
-          height: `${slides.length * 100}vh`,
+          height: `${(slides.length + 1) * 30}vh`,
         }}
       >
         <div className="horizontalSticky">
@@ -162,11 +218,24 @@ function App() {
                   </>
                 ) : (
                   <>
-                    <img
-                      src={slide.image}
-                      alt={slide.title}
-                      className="showcaseImage"
-                    />
+                    {slide.slideshow ? (
+                      <HeroSlideshow slide={slide} />
+                    ) : slide.image.endsWith(".mp4") ? (
+                      <video
+                        src={slide.image}
+                        className="showcaseImage"
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                      />
+                    ) : (
+                      <img
+                        src={slide.image}
+                        alt={slide.title}
+                        className="showcaseImage"
+                      />
+                    )}
 
                     <div className="imageOverlay" />
 
@@ -176,6 +245,11 @@ function App() {
                     </div>
 
                     <div className="slideTitle">
+                      {index === slides.length - 1 && (
+                        <a href="#about" className="continueCue">
+                          Continue ↓
+                        </a>
+                      )}
                       <p>Selected Work</p>
                       <h2>{slide.title}</h2>
                       <span>{slide.description}</span>
