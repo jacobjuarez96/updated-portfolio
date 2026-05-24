@@ -403,6 +403,14 @@ footer {
     height: auto;
   }
 
+  .showcaseImage::-webkit-media-controls {
+  display: none !important;
+}
+
+.showcaseImage::-webkit-media-controls-start-playback-button {
+  display: none !important;
+  -webkit-appearance: none;
+}
   .introSlide {
     padding: 6rem 5vw;
   }

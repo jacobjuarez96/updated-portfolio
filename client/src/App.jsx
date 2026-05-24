@@ -183,11 +183,10 @@ function App() {
               <section
                 key={slide.title}
                 id={index === 0 ? "home" : undefined}
-                className={`showcaseSlide ${
-                  slide.type === "intro"
-                    ? "introSlide"
-                    : "projectShowcaseSlide"
-                }`}
+                className={`showcaseSlide ${slide.type === "intro"
+                  ? "introSlide"
+                  : "projectShowcaseSlide"
+                  }`}
               >
                 {slide.type === "intro" ? (
                   <>
@@ -228,6 +227,15 @@ function App() {
                         muted
                         loop
                         playsInline
+                        preload="auto"
+                        controls={false}
+                        disablePictureInPicture
+                        ref={(video) => {
+                          if (video) {
+                            video.muted = true;
+                            video.play().catch(() => { });
+                          }
+                        }}
                       />
                     ) : (
                       <img
